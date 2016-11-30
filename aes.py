@@ -110,7 +110,7 @@ def shiftRows():
         rows[r] = rows[r][r:] + rows[r][:r]
     state = [r[c] for c in range(4) for r in rows]
 
-def invShiftRows(self):
+def invShiftRows():
     rows = []
     for r in range(4):
         rows.append(state[r::4])
@@ -129,7 +129,7 @@ def mixColumns():
         ))
     state = ss
 
-def invMixColumns(self):
+def invMixColumns():
     ss = []
     for c in range(4):
         col = state[c*4:(c+1)*4]
