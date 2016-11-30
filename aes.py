@@ -1,7 +1,22 @@
 Nb = 4
 Nk = 4
 Nr = 10
-RoundKey = [0] * 176
+roundKey = [0] * 176
+
+def gf256(p, q):
+    r = 0
+    for c in range(8):
+        if q & 1:
+            r ^= p
+        p <<= 1
+        if p & 0x100:
+            p ^= 0x11b
+        q >>= 1
+    return r
+
+gf = {}
+for p in (0x02, 0x03, 0x0e, 0x0b, 0x0d, 0x09):
+    gf[p] = tuple(gf256(p, q) for q in range(0,0x100))
 
 sbox = [
   0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
@@ -81,18 +96,55 @@ def invCipher():
     addRoundKey(0)
 
 def subBytes():
-    pass
+    for i, b in enumerate(state):
+        state[i] = sBox[b]
+
+def invSubBytes():
+    for i, b in enumerate(state):
+        state[i] = sBox_inv[b]
 
 def shiftRows():
-    pass
+    rows = []
+    for r in range(4):
+        rows.append(state[r::4])
+        rows[r] = rows[r][r:] + rows[r][:r]
+    state = [r[c] for c in range(4) for r in rows]
+
+def invShiftRows(self):
+    rows = []
+    for r in range(4):
+        rows.append(state[r::4])
+        rows[r] = rows[r][4-r:] + rows[r][:4-r]
+    state = [r[c] for c in range(4) for r in rows]
 
 def mixColumns():
-    pass
+    ss = []
+    for c in range(4):
+        col = state[c*4:(c+1)*4]
+        ss.extend((
+            gf[0x02][col[0]] ^ gf[0x03][col[1]] ^ col[2] ^ col[3] ,
+            col[0] ^ gf[0x02][col[1]] ^ gf[0x03][col[2]] ^ col[3] ,
+            col[0] ^ col[1] ^ gf[0x02][col[2]] ^ gf[0x03][col[3]],
+            gf[0x03][col[0]] ^ col[1] ^ col[2] ^ gf[0x02][col[3]],
+        ))
+    state = ss
+
+def invMixColumns(self):
+    ss = []
+    for c in range(4):
+        col = state[c*4:(c+1)*4]
+        ss.extend((
+            gf[0x0e][col[0]] ^ gf[0x0b][col[1]] ^ gf[0x0d][col[2]] ^ gf[0x09][col[3]],
+            gf[0x09][col[0]] ^ gf[0x0e][col[1]] ^ gf[0x0b][col[2]] ^ gf[0x0d][col[3]],
+            gf[0x0d][col[0]] ^ gf[0x09][col[1]] ^ gf[0x0e][col[2]] ^ gf[0x0b][col[3]],
+            gf[0x0b][col[0]] ^ gf[0x0d][col[1]] ^ gf[0x09][col[2]] ^ gf[0x0e][col[3]],
+        ))
+    state = ss
 
 def addRoundKey(round):
     for i in range(4):
         for j in range(4):
-            state[i][j] ^= RoundKey[round * Nb * 4 + i * Nb + j]
+            state[i][j] ^= roundKey[round * Nb * 4 + i * Nb + j]
 
-def rot_word(word):
-    return word[1:] + word[:1]
+# def rotWord(word):
+#     return word[1:] + word[:1]
