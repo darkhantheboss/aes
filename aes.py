@@ -165,9 +165,9 @@ message = "Professor Moshier, \nOur AES object has two public functions: \n\n1) 
 print "\n:: MESSAGE TO ENCRYPT\n", message
 
 aes = AES()
-ciphered = aes.encrypt(message, "2b7e151628aed2a6abf7158809cf4f3c")
+ciphered = aes.encrypt(message, "abcd151628aed2a6abf7158809cf4f3c")
 print "\n:: ENCRYPTED (AS HEX):", ciphered.encode('hex')
 
 aes2 = AES()
-deciphered = aes2.decrypt(ciphered, "2b7e151628aed2a6abf7158809cf4f3c")
+deciphered = aes2.decrypt(ciphered, "abcd151628aed2a6abf7158809cf4f3c")
 print "\n:: DECRYPTED:\n", deciphered, "\n"
